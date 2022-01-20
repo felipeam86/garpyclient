@@ -2,19 +2,32 @@
 # -*- coding: utf-8 -*-
 
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
+import cloudscraper
 import pytest
 import requests
 from conftest import get_mocked_request, get_mocked_response
 
 from garpyclient import GarminClient
-from garpyclient.client import extract_auth_ticket_url
+from garpyclient.client import extract_auth_ticket_url, session_factory
 from garpyclient.settings import config
 
 RESPONSE_EXAMPLES_PATH = Path(__file__).parent / "response_examples"
+
+
+class TestSessionFactory:
+    def test_without_cloudscraper(self):
+        with patch.dict("sys.modules", {"cloudscraper": None}):
+            session = session_factory()
+            assert isinstance(session, requests.Session)
+
+    def test_with_cloudscraper(self):
+        session = session_factory()
+        assert isinstance(session, cloudscraper.CloudScraper)
 
 
 class TestExtractAuthTicketUrl:

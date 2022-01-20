@@ -12,13 +12,17 @@ python = "^3.6.15"
 requests = "^2.22"
 attrs = "^21.4.0"
 PyYAML = ">=5.1,<7.0"
-cloudscraper = "^1.2.58"
+cloudscraper =  { version = "^1.2.58", optional = true }
+
+[tool.poetry.extras]
+cloudscraper = ["cloudscraper"]
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 pytest-cov = "^3.0"
 black = "^21.12b0"
 isort = "^5.10.1"
+jupyter = "^1.0.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
