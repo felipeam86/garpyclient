@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import json
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock
 
-import pendulum
 import pytest
 import requests
 from conftest import get_mocked_request, get_mocked_response
@@ -338,7 +338,7 @@ class TestGarminClient:
 
     def test_get_wellness(self, client):
         endpoint = config["wellness"]["endpoint"]
-        date = pendulum.DateTime(2019, 9, 27)
+        date = datetime(2019, 9, 27)
         with client:
             # Test normal behavior with 200 response code
             client.session.get = get_mocked_request(
