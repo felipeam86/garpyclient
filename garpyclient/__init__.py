@@ -3,10 +3,7 @@ __version__ = "0.3.6"
 import logging
 import sys
 
-from .activity import Activities, Activity
 from .client import GarminClient
-from .download import ActivitiesDownloader
-from .wellness import Wellness
 
 # Create logger
 logger = logging.getLogger(__name__)

@@ -10,9 +10,9 @@ import pytest
 import requests
 from conftest import get_mocked_request, get_mocked_response
 
-from garpy import GarminClient
-from garpy.client import extract_auth_ticket_url
-from garpy.settings import Password, config
+from garpyclient import GarminClient
+from garpyclient.client import extract_auth_ticket_url
+from garpyclient.settings import config
 
 RESPONSE_EXAMPLES_PATH = Path(__file__).parent / "response_examples"
 
