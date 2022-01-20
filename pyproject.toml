@@ -5,7 +5,7 @@ description = "Python client for downloading activities from Garmin Connect"
 authors = ["Felipe Aguirre Martinez <felipeam86@gmail.com>"]
 license = "MIT"
 readme = "README.rst"
-homepage = "https://github.com/felipeam86/garpy"
+homepage = "https://github.com/felipeam86/garpyclient"
 
 [tool.poetry.dependencies]
 python = "^3.6.15"

@@ -112,10 +112,10 @@ created a package from it.
    :target: https://pypi.org/project/garpy
 .. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/2fbbd268e0a04cd0983291227be53873
    :target: https://app.codacy.com/manual/garpy/garpy/dashboard
-.. |Tests| image:: https://github.com/felipeam86/garpy/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/felipeam86/garpy/actions/workflows/test.yml
-.. |Coveralls| image:: https://coveralls.io/repos/github/felipeam86/garpy/badge.svg?branch=develop
-    :target: https://coveralls.io/github/felipeam86/garpy?branch=develop
+.. |Tests| image:: https://github.com/felipeam86/garpyclient/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/felipeam86/garpyclient/actions/workflows/test.yml
+.. |Coveralls| image:: https://coveralls.io/repos/github/felipeam86/garpyclient/badge.svg?branch=develop
+    :target: https://coveralls.io/github/felipeam86/garpyclient?branch=develop
 
 
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html

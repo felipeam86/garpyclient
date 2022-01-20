@@ -38,7 +38,7 @@ jobs:
         poetry install
     - name: Test with pytest
       run: |
-        poetry run pytest --cov-report term-missing --cov=garpy tests/
+        poetry run pytest --cov-report term-missing --cov=garpyclient tests/
     - name: Publish coverage to Coveralls
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
