@@ -17,8 +17,8 @@ import sys
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-import attr
 import requests
+from attrs import define, field
 
 from .settings import config
 
@@ -73,7 +73,7 @@ def extract_auth_ticket_url(auth_response: str):
     return auth_ticket_url
 
 
-@attr.s
+@define(slots=False)
 class GarminClient(object):
     """A client class used to authenticate with Garmin Connect
 
@@ -107,10 +107,10 @@ class GarminClient(object):
 
     """
 
-    username: str = attr.ib(default=config.get("username"))
-    password: str = attr.ib(default=config.get("password"), repr=False)
-    session: requests.Session = attr.ib(default=None, repr=False)
-    user_agent: str = attr.ib(default=config["user-agent"])
+    username: str
+    password: str = field(repr=False)
+    session: requests.Session = field(default=None, repr=False)
+    user_agent: str = field(default=None)
 
     def __enter__(self):
         self.connect()
