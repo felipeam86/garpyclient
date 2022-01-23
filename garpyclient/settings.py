@@ -32,6 +32,3 @@ for config_file in config_files:
         new_config = yaml.safe_load(config_file.read_text())
         if isinstance(new_config, dict):
             config = recursive_update(config, new_config)
-
-
-config["backup-dir"] = Path(config["backup-dir"]).absolute()
