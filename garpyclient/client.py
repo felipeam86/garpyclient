@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 ENDPOINTS = config["endpoints"]
 
 
-def session_factory():
+def session_factory(user_agent: str = None) -> requests.Session:
     try:
         import cloudscraper
 
@@ -39,6 +39,8 @@ def session_factory():
         )
     except ImportError:
         session = requests.Session()
+        if user_agent is not None:
+            session.headers.update({"User-Agent": user_agent})
 
     return session
 
@@ -89,6 +91,9 @@ class GarminClient(object):
         Garmin connect password
     session
         A Requests session
+    user_agent
+        User agent to be attached to the session. If cloudscraper is installed, this parameter
+        is ignored. The user agent will be decided by cloudscraper.
 
     Examples
     --------
@@ -136,7 +141,6 @@ class GarminClient(object):
             ENDPOINTS["SSO_LOGIN_URL"],
             headers={
                 "origin": "https://sso.garmin.com",
-                "User-Agent": self.user_agent,
             },
             params={"service": "https://connect.garmin.com/modern"},
             data={

@@ -29,6 +29,19 @@ class TestSessionFactory:
         session = session_factory()
         assert isinstance(session, cloudscraper.CloudScraper)
 
+    def test_without_cloudscraper_and_provided_user_agent(self):
+        with patch.dict("sys.modules", {"cloudscraper": None}):
+            session = session_factory(user_agent="Robot")
+            assert isinstance(session, requests.Session)
+            assert session.headers["User-Agent"] == "Robot"
+
+    def test_with_cloudscraper_and_provided_user_agent(self):
+        session = session_factory(user_agent="Robot")
+        assert isinstance(session, requests.Session)
+        assert (
+            session.headers["User-Agent"] != "Robot"
+        ), "You should let cloudscraper decide the user agent on your behalf"
+
 
 class TestExtractAuthTicketUrl:
     def test_with_good_response(self):
@@ -154,7 +167,6 @@ class TestGarminClient:
             config["endpoints"]["SSO_LOGIN_URL"],
             headers={
                 "origin": "https://sso.garmin.com",
-                "User-Agent": config["user-agent"],
             },
             params={"service": "https://connect.garmin.com/modern"},
             data={
@@ -170,36 +182,6 @@ class TestGarminClient:
         assert (
             client.password.get() == "falsepassword"
         ), "The original password was not recovered with the .get() method"
-
-    def test_authenticate_with_provided_user_agent(self):
-        """Test normal behavior of _authenticate"""
-        client = GarminClient(
-            username="falseuser", password="falsepassword", user_agent="Robot"
-        )
-        client.session = requests.Session()
-        client.session.post = get_mocked_request(
-            status_code=200,
-            func_name="client.session.post()",
-            text='var response_url                    =\n"https://connect.garmin.com/modern?ticket=DG-2742319-qf4sfe2315ddfQFQ3dYc-cas";',
-        )
-        client.session.get = get_mocked_request(
-            status_code=200, func_name="client.session.get()"
-        )
-        client.connect()
-
-        client.session.post.assert_called_with(
-            config["endpoints"]["SSO_LOGIN_URL"],
-            headers={
-                "origin": "https://sso.garmin.com",
-                "User-Agent": "Robot",
-            },
-            params={"service": "https://connect.garmin.com/modern"},
-            data={
-                "username": "falseuser",
-                "password": "falsepassword",
-                "embed": "false",
-            },
-        )
 
     def test_authenticate_auth_ticket_fails_get_auth_ticket(self):
         """Test that _authenticate fails if it does not get auth ticket"""
