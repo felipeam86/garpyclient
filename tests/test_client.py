@@ -85,30 +85,19 @@ class TestGarminClient:
         with pytest.raises(ConnectionError) as excinfo:
             client.connect()
 
-        err_msg = (
-            f"Missing credentials. Your forgot to provide username or password. "
-            f"username: ''. password: '*************'"
-        )
+        err_msg = f"Missing credentials. Your forgot to provide username or password."
         assert err_msg in str(excinfo.value)
 
         client = GarminClient(username="falseuser", password="")
         with pytest.raises(ConnectionError) as excinfo:
             client.connect()
 
-        err_msg = (
-            f"Missing credentials. Your forgot to provide username or password. "
-            f"username: 'falseuser'. password: ''"
-        )
         assert err_msg in str(excinfo.value)
 
         client = GarminClient(username="", password="")
         with pytest.raises(ConnectionError) as excinfo:
             client.connect()
 
-        err_msg = (
-            f"Missing credentials. Your forgot to provide username or password. "
-            f"username: ''. password: ''"
-        )
         assert err_msg in str(excinfo.value)
 
     def test_authentication_fail_raises_error(self):
@@ -135,21 +124,7 @@ class TestGarminClient:
             not client.connected
         ), "Client should have disconnected after with statement"
 
-    def test_authenticate_with_string_password(self):
-        """Test normal behavior of _authenticate"""
-        client = GarminClient(username="falseuser", password="falsepassword")
-        client.session = requests.Session()
-        client.session.post = get_mocked_request(
-            status_code=200,
-            func_name="client.session.post()",
-            text='var response_url                    =\n"https://connect.garmin.com/modern?ticket=DG-2742319-qf4sfe2315ddfQFQ3dYc-cas";',
-        )
-        client.session.get = get_mocked_request(
-            status_code=200, func_name="client.session.get()"
-        )
-        client.connect()
-
-    def test_authenticate_with_Password_password(self):
+    def test_authenticate(self):
         """Test normal behavior of _authenticate"""
         client = GarminClient(username="falseuser", password="falsepassword")
         client.session = requests.Session()
@@ -175,13 +150,6 @@ class TestGarminClient:
                 "embed": "false",
             },
         )
-
-        assert (
-            str(client.password) == "*************"
-        ), "The password has not been succesfully hidden on string representation"
-        assert (
-            client.password.get() == "falsepassword"
-        ), "The original password was not recovered with the .get() method"
 
     def test_authenticate_auth_ticket_fails_get_auth_ticket(self):
         """Test that _authenticate fails if it does not get auth ticket"""
