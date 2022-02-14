@@ -18,7 +18,7 @@ cloudscraper =  { version = "^1.2.58", optional = true }
 cloudscraper = ["cloudscraper"]
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
+pytest = "^7.0.1"
 pytest-cov = "^3.0"
 black = "^21.12b0"
 isort = "^5.10.1"
