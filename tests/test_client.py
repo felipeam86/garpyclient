@@ -245,7 +245,9 @@ class TestGarminClient:
                 client.get_activity(9766544337, fmt)
                 client.session.get.assert_called_once()
                 client.session.get.assert_called_with(
-                    parameters["endpoint"].format(id=9766544337), params=None
+                    parameters["endpoint"].format(id=9766544337),
+                    params=None,
+                    headers={"NK": "NT"},
                 )
 
                 # Test raised exception with 400 response code
@@ -258,7 +260,9 @@ class TestGarminClient:
 
                 client.session.get.assert_called_once()
                 client.session.get.assert_called_with(
-                    parameters["endpoint"].format(id=9766544337), params=None
+                    parameters["endpoint"].format(id=9766544337),
+                    params=None,
+                    headers={"NK": "NT"},
                 )
 
                 # Test error codes get tolerated
@@ -270,7 +274,9 @@ class TestGarminClient:
                         client.get_activity(9766544337, fmt)
                         client.session.get.assert_called_once()
                         client.session.get.assert_called_with(
-                            parameters["endpoint"].format(id=9766544337), params=None
+                            parameters["endpoint"].format(id=9766544337),
+                            params=None,
+                            headers={"NK": "NT"},
                         )
 
     def test_get_activity_raises_error_unknown_format(self, client):
@@ -310,7 +316,9 @@ class TestGarminClient:
             client.get_wellness(date)
             client.session.get.assert_called_once()
             client.session.get.assert_called_with(
-                endpoint.format(date="2019-09-27"), params=None
+                endpoint.format(date="2019-09-27"),
+                params=None,
+                headers={"NK": "NT"},
             )
 
             # Test raised exception with 400 response code
@@ -323,7 +331,9 @@ class TestGarminClient:
 
             client.session.get.assert_called_once()
             client.session.get.assert_called_with(
-                endpoint.format(date="2019-09-27"), params=None
+                endpoint.format(date="2019-09-27"),
+                params=None,
+                headers={"NK": "NT"},
             )
 
             # Test error codes get tolerated
@@ -336,5 +346,7 @@ class TestGarminClient:
                     client.get_wellness(date)
                     client.session.get.assert_called_once()
                     client.session.get.assert_called_with(
-                        endpoint.format(date="2019-09-27"), params=None
+                        endpoint.format(date="2019-09-27"),
+                        params=None,
+                        headers={"NK": "NT"},
                     )
