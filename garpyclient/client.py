@@ -124,7 +124,7 @@ class GarminClient(object):
             raise ConnectionError(
                 "Missing credentials. Your forgot to provide username or password. "
             )
-        self.session = self.session or session_factory()
+        self.session = self.session or session_factory(user_agent=self.user_agent)
         self._authenticate()
 
     def disconnect(self):
