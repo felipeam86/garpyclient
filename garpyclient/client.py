@@ -169,7 +169,11 @@ class GarminClient(object):
         return self.session is not None
 
     def get(
-        self, url: str, err_message: str, tolerate: Tuple = (), params: dict = None
+        self,
+        url: str,
+        err_message: str = None,
+        tolerate: Tuple = (),
+        params: dict = None,
     ) -> requests.Response:
         """Send a get request on an authenticated session and tolerate some response codes
 
@@ -192,7 +196,7 @@ class GarminClient(object):
             raise ConnectionError(
                 "Attempt to use GarminClient without being connected. Call connect() before first use."
             )
-
+        err_message = err_message or f"Get request to endpoint {url!r} failed"
         response = self.session.get(url, params=params, headers={"NK": "NT"})
         if response.status_code in tolerate:
             return response
