@@ -25,7 +25,7 @@ with GarminClient(username="user", password="pass") as client:
 The file content will be found in `response.content`. The format of the file will depend on the parameter `fmt` to which you can pass the following values:
 
 - For an overview of the activities: `summary` or `details`
-- For data points of the activity: `gpx`, `tcx`, `original` (usually fit format) and `mkl`.
+- For data points of the activity: `gpx`, `tcx`, `original` (usually fit format) and `kml`.
 
 
 ## Installation
