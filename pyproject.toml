@@ -10,7 +10,6 @@ homepage = "https://github.com/felipeam86/garpyclient"
 [tool.poetry.dependencies]
 python = "^3.7.9"
 requests = "^2.22"
-attrs = "^21.4.0"
 PyYAML = ">=5.1,<7.0"
 cloudscraper =  { version = "^1.2.58", optional = true }
 

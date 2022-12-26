@@ -14,11 +14,11 @@ import json
 import logging
 import re
 import sys
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Tuple
 
 import requests
-from attrs import define, field
 
 from .settings import config
 
@@ -73,7 +73,7 @@ def extract_auth_ticket_url(auth_response: str):
     return auth_ticket_url
 
 
-@define(slots=False)
+@dataclass
 class GarminClient(object):
     """A client class used to authenticate with Garmin Connect
 
