@@ -1,31 +1,27 @@
 [tool.poetry]
-name = "garpy"
-version = "0.3.6"
-description = "Python client for downloading activities from Garmin Connect"
+name = "garpyclient"
+version = "0.1.1"
+description = "Basic library for authenticating and querying Garmin Connect"
 authors = ["Felipe Aguirre Martinez <felipeam86@gmail.com>"]
 license = "MIT"
-readme = "README.rst"
-homepage = "https://github.com/felipeam86/garpy"
-
-[tool.poetry.scripts]
-garpy = "garpy.cli:main"
+readme = "README.md"
+homepage = "https://github.com/felipeam86/garpyclient"
 
 [tool.poetry.dependencies]
-python = "^3.6.15"
+python = "^3.7.9"
 requests = "^2.22"
-attrs = "^21.4.0"
-pendulum = "^2.0"
 PyYAML = ">=5.1,<7.0"
-click = ">=7,<9"
-tqdm = "^4.36"
-cloudscraper = "^1.2.58"
+cloudscraper =  { version = "^1.2.58", optional = true }
+
+[tool.poetry.extras]
+cloudscraper = ["cloudscraper"]
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
-pytest-cov = "^3.0"
-coveralls = "^3.0"
-black = "^21.12b0"
-isort = "^5.10.1"
+pytest = "^7.2.0"
+pytest-cov = "^4.0"
+black = "^22.12.0"
+isort = "^5.11.4"
+jupyter = "^1.0.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

@@ -20,20 +20,6 @@ def recursive_update(original_dict: dict, new_dict: dict) -> dict:
     return original_dict
 
 
-class Password:
-    def __init__(self, password: str) -> None:
-        self.password = password or ""
-
-    def __repr__(self) -> str:
-        return "*" * len(self.password)
-
-    def get(self) -> str:
-        return self.password
-
-    def __bool__(self):
-        return bool(self.password)
-
-
 # Configurations are loaded from the defaults of the package and eventually a local config.yaml file
 config_files = [
     Path(__file__).parent / "resources" / "default_config.yaml",
@@ -46,7 +32,3 @@ for config_file in config_files:
         new_config = yaml.safe_load(config_file.read_text())
         if isinstance(new_config, dict):
             config = recursive_update(config, new_config)
-
-
-config["backup-dir"] = Path(config["backup-dir"]).absolute()
-config["password"] = Password(config.get("password"))

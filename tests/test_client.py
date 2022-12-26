@@ -2,19 +2,45 @@
 # -*- coding: utf-8 -*-
 
 import json
+import sys
+from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-import pendulum
+import cloudscraper
 import pytest
 import requests
 from conftest import get_mocked_request, get_mocked_response
 
-from garpy import GarminClient
-from garpy.client import extract_auth_ticket_url
-from garpy.settings import Password, config
+from garpyclient import GarminClient
+from garpyclient.client import extract_auth_ticket_url, session_factory
+from garpyclient.settings import config
 
 RESPONSE_EXAMPLES_PATH = Path(__file__).parent / "response_examples"
+
+
+class TestSessionFactory:
+    def test_without_cloudscraper(self):
+        with patch.dict("sys.modules", {"cloudscraper": None}):
+            session = session_factory()
+            assert isinstance(session, requests.Session)
+
+    def test_with_cloudscraper(self):
+        session = session_factory()
+        assert isinstance(session, cloudscraper.CloudScraper)
+
+    def test_without_cloudscraper_and_provided_user_agent(self):
+        with patch.dict("sys.modules", {"cloudscraper": None}):
+            session = session_factory(user_agent="Robot")
+            assert isinstance(session, requests.Session)
+            assert session.headers["User-Agent"] == "Robot"
+
+    def test_with_cloudscraper_and_provided_user_agent(self):
+        session = session_factory(user_agent="Robot")
+        assert isinstance(session, requests.Session)
+        assert (
+            session.headers["User-Agent"] != "Robot"
+        ), "You should let cloudscraper decide the user agent on your behalf"
 
 
 class TestExtractAuthTicketUrl:
@@ -59,30 +85,19 @@ class TestGarminClient:
         with pytest.raises(ConnectionError) as excinfo:
             client.connect()
 
-        err_msg = (
-            f"Missing credentials. Your forgot to provide username or password. "
-            f"username: ''. password: '*************'"
-        )
+        err_msg = f"Missing credentials. Your forgot to provide username or password."
         assert err_msg in str(excinfo.value)
 
         client = GarminClient(username="falseuser", password="")
         with pytest.raises(ConnectionError) as excinfo:
             client.connect()
 
-        err_msg = (
-            f"Missing credentials. Your forgot to provide username or password. "
-            f"username: 'falseuser'. password: ''"
-        )
         assert err_msg in str(excinfo.value)
 
         client = GarminClient(username="", password="")
         with pytest.raises(ConnectionError) as excinfo:
             client.connect()
 
-        err_msg = (
-            f"Missing credentials. Your forgot to provide username or password. "
-            f"username: ''. password: ''"
-        )
         assert err_msg in str(excinfo.value)
 
     def test_authentication_fail_raises_error(self):
@@ -109,21 +124,7 @@ class TestGarminClient:
             not client.connected
         ), "Client should have disconnected after with statement"
 
-    def test_authenticate_with_string_password(self):
-        """Test normal behavior of _authenticate"""
-        client = GarminClient(username="falseuser", password="falsepassword")
-        client.session = requests.Session()
-        client.session.post = get_mocked_request(
-            status_code=200,
-            func_name="client.session.post()",
-            text='var response_url                    =\n"https://connect.garmin.com/modern?ticket=DG-2742319-qf4sfe2315ddfQFQ3dYc-cas";',
-        )
-        client.session.get = get_mocked_request(
-            status_code=200, func_name="client.session.get()"
-        )
-        client.connect()
-
-    def test_authenticate_with_Password_password(self):
+    def test_authenticate(self):
         """Test normal behavior of _authenticate"""
         client = GarminClient(username="falseuser", password="falsepassword")
         client.session = requests.Session()
@@ -141,44 +142,6 @@ class TestGarminClient:
             config["endpoints"]["SSO_LOGIN_URL"],
             headers={
                 "origin": "https://sso.garmin.com",
-                "User-Agent": config["user-agent"],
-            },
-            params={"service": "https://connect.garmin.com/modern"},
-            data={
-                "username": "falseuser",
-                "password": "falsepassword",
-                "embed": "false",
-            },
-        )
-
-        assert (
-            str(client.password) == "*************"
-        ), "The password has not been succesfully hidden on string representation"
-        assert (
-            client.password.get() == "falsepassword"
-        ), "The original password was not recovered with the .get() method"
-
-    def test_authenticate_with_provided_user_agent(self):
-        """Test normal behavior of _authenticate"""
-        client = GarminClient(
-            username="falseuser", password="falsepassword", user_agent="Robot"
-        )
-        client.session = requests.Session()
-        client.session.post = get_mocked_request(
-            status_code=200,
-            func_name="client.session.post()",
-            text='var response_url                    =\n"https://connect.garmin.com/modern?ticket=DG-2742319-qf4sfe2315ddfQFQ3dYc-cas";',
-        )
-        client.session.get = get_mocked_request(
-            status_code=200, func_name="client.session.get()"
-        )
-        client.connect()
-
-        client.session.post.assert_called_with(
-            config["endpoints"]["SSO_LOGIN_URL"],
-            headers={
-                "origin": "https://sso.garmin.com",
-                "User-Agent": "Robot",
             },
             params={"service": "https://connect.garmin.com/modern"},
             data={
@@ -282,7 +245,9 @@ class TestGarminClient:
                 client.get_activity(9766544337, fmt)
                 client.session.get.assert_called_once()
                 client.session.get.assert_called_with(
-                    parameters["endpoint"].format(id=9766544337), params=None
+                    parameters["endpoint"].format(id=9766544337),
+                    params=None,
+                    headers={"NK": "NT"},
                 )
 
                 # Test raised exception with 400 response code
@@ -295,7 +260,9 @@ class TestGarminClient:
 
                 client.session.get.assert_called_once()
                 client.session.get.assert_called_with(
-                    parameters["endpoint"].format(id=9766544337), params=None
+                    parameters["endpoint"].format(id=9766544337),
+                    params=None,
+                    headers={"NK": "NT"},
                 )
 
                 # Test error codes get tolerated
@@ -307,7 +274,9 @@ class TestGarminClient:
                         client.get_activity(9766544337, fmt)
                         client.session.get.assert_called_once()
                         client.session.get.assert_called_with(
-                            parameters["endpoint"].format(id=9766544337), params=None
+                            parameters["endpoint"].format(id=9766544337),
+                            params=None,
+                            headers={"NK": "NT"},
                         )
 
     def test_get_activity_raises_error_unknown_format(self, client):
@@ -338,7 +307,7 @@ class TestGarminClient:
 
     def test_get_wellness(self, client):
         endpoint = config["wellness"]["endpoint"]
-        date = pendulum.DateTime(2019, 9, 27)
+        date = datetime(2019, 9, 27)
         with client:
             # Test normal behavior with 200 response code
             client.session.get = get_mocked_request(
@@ -347,7 +316,9 @@ class TestGarminClient:
             client.get_wellness(date)
             client.session.get.assert_called_once()
             client.session.get.assert_called_with(
-                endpoint.format(date="2019-09-27"), params=None
+                endpoint.format(date="2019-09-27"),
+                params=None,
+                headers={"NK": "NT"},
             )
 
             # Test raised exception with 400 response code
@@ -360,7 +331,9 @@ class TestGarminClient:
 
             client.session.get.assert_called_once()
             client.session.get.assert_called_with(
-                endpoint.format(date="2019-09-27"), params=None
+                endpoint.format(date="2019-09-27"),
+                params=None,
+                headers={"NK": "NT"},
             )
 
             # Test error codes get tolerated
@@ -373,5 +346,7 @@ class TestGarminClient:
                     client.get_wellness(date)
                     client.session.get.assert_called_once()
                     client.session.get.assert_called_with(
-                        endpoint.format(date="2019-09-27"), params=None
+                        endpoint.format(date="2019-09-27"),
+                        params=None,
+                        headers={"NK": "NT"},
                     )

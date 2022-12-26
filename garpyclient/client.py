@@ -14,17 +14,35 @@ import json
 import logging
 import re
 import sys
+from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Dict, List, Tuple
 
-import attr
-import cloudscraper
-import pendulum
 import requests
 
-from .settings import Password, config
+from .settings import config
 
 logger = logging.getLogger(__name__)
 ENDPOINTS = config["endpoints"]
+
+
+def session_factory(user_agent: str = None) -> requests.Session:
+    try:
+        import cloudscraper
+
+        session = cloudscraper.create_scraper(
+            browser={
+                "browser": "firefox",
+                "platform": "windows",
+                "mobile": False,
+            }
+        )
+    except ImportError:
+        session = requests.Session()
+        if user_agent is not None:
+            session.headers.update({"User-Agent": user_agent})
+
+    return session
 
 
 def extract_auth_ticket_url(auth_response: str):
@@ -55,7 +73,7 @@ def extract_auth_ticket_url(auth_response: str):
     return auth_ticket_url
 
 
-@attr.s
+@dataclass
 class GarminClient(object):
     """A client class used to authenticate with Garmin Connect
 
@@ -73,6 +91,9 @@ class GarminClient(object):
         Garmin connect password
     session
         A Requests session
+    user_agent
+        User agent to be attached to the session. If cloudscraper is installed, this parameter
+        is ignored. The user agent will be decided by cloudscraper.
 
     Examples
     --------
@@ -86,12 +107,10 @@ class GarminClient(object):
 
     """
 
-    username: str = attr.ib(default=config.get("username"))
-    password: str = attr.ib(
-        default=config.get("password").get(), repr=False, converter=Password
-    )
-    session: requests.Session = attr.ib(default=None, repr=False)
-    user_agent: str = attr.ib(default=config["user-agent"])
+    username: str
+    password: str = field(repr=False)
+    session: requests.Session = field(default=None, repr=False)
+    user_agent: str = field(default=None)
 
     def __enter__(self):
         self.connect()
@@ -104,16 +123,8 @@ class GarminClient(object):
         if (not bool(self.username)) or (not bool(self.password)):
             raise ConnectionError(
                 "Missing credentials. Your forgot to provide username or password. "
-                f"username: '{self.username}'. password: '{self.password}'"
             )
-        self.session = self.session or cloudscraper.create_scraper(
-            browser={
-                "browser": "firefox",
-                "platform": "windows",
-                "mobile": False,
-            }
-        )
-
+        self.session = self.session or session_factory(user_agent=self.user_agent)
         self._authenticate()
 
     def disconnect(self):
@@ -127,12 +138,11 @@ class GarminClient(object):
             ENDPOINTS["SSO_LOGIN_URL"],
             headers={
                 "origin": "https://sso.garmin.com",
-                "User-Agent": self.user_agent,
             },
             params={"service": "https://connect.garmin.com/modern"},
             data={
                 "username": self.username,
-                "password": self.password.get(),
+                "password": self.password,
                 "embed": "false",
             },
         )
@@ -159,7 +169,11 @@ class GarminClient(object):
         return self.session is not None
 
     def get(
-        self, url: str, err_message: str, tolerate: Tuple = (), params: dict = None
+        self,
+        url: str,
+        err_message: str = None,
+        tolerate: Tuple = (),
+        params: dict = None,
     ) -> requests.Response:
         """Send a get request on an authenticated session and tolerate some response codes
 
@@ -182,8 +196,8 @@ class GarminClient(object):
             raise ConnectionError(
                 "Attempt to use GarminClient without being connected. Call connect() before first use."
             )
-
-        response = self.session.get(url, params=params)
+        err_message = err_message or f"Get request to endpoint {url!r} failed"
+        response = self.session.get(url, params=params, headers={"NK": "NT"})
         if response.status_code in tolerate:
             return response
         elif response.status_code != 200:
@@ -238,7 +252,7 @@ class GarminClient(object):
 
         return activities
 
-    def get_wellness(self, date: pendulum.DateTime) -> requests.Response:
+    def get_wellness(self, date: datetime) -> requests.Response:
         """Get wellness data for a given date
 
         Parameters
@@ -253,7 +267,7 @@ class GarminClient(object):
         """
 
         response = self.get(
-            url=config["wellness"]["endpoint"].format(date=date.format("YYYY-MM-DD")),
+            url=config["wellness"]["endpoint"].format(date=date.strftime("%Y-%m-%d")),
             err_message=f"Failed to fetch wellness data for date {date!r}.",
             tolerate=tuple(config["wellness"]["tolerate"]),
         )
