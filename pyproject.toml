@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "garpyclient"
-version = "0.1.0"
+version = "0.1.1"
 description = "Basic library for authenticating and querying Garmin Connect"
 authors = ["Felipe Aguirre Martinez <felipeam86@gmail.com>"]
 license = "MIT"
